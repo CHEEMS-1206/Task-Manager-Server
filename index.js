@@ -10,6 +10,7 @@ import cors from "cors";
 // importing database config code and rendering for config folder
 import './config/config.js'
 import authRouter from "./routes/Authentication.js";
+import taskRouter from "./routes/Task.js";
 
 // constructed a server
 const SERVER = express();
@@ -23,6 +24,7 @@ SERVER.use(express.json());
 //MIDDLEWARES
 
 SERVER.use("/api",authRouter);
+SERVER.use("/api",taskRouter)
 
 // defining port for backend rest server
 const PORT = 5001;

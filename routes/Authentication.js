@@ -1,7 +1,7 @@
 import express from "express";
 import bodyParser from "body-parser";
 
-// import controllers for home
+// import controllers for Authentication
 import * as authControllers from "../controllers/Authentications.js";
 
 // define router
