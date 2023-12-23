@@ -23,6 +23,24 @@ export const getTask = async (req, res) => {
 };
 
 // Getting list of all tasks in the database with pagination
+export const getAllTasksForAnalytics = async (req, res) => {
+  try {
+    const tasks = await Task
+      .find()
+
+    if (tasks.length > 0) {
+      res.status(200).json(tasks);
+    } else {
+      res.status(404).json({
+        msg: "Oops! No tasks available.",
+      });
+    }
+  } catch (e) {
+    res.status(400).json({ msg: e.message });
+  }
+};
+
+// Getting list of all tasks in the database with pagination
 export const getAllTasks = async (req, res) => {
   const { page = 1, limit = 10 } = req.query; // Default page is 1 and limit is 25, if not provided
 
