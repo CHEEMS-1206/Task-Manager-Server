@@ -14,4 +14,10 @@ taskRouter.put("/task/:id", taskControllers.updateTask);
 taskRouter.patch("/task/:id", taskControllers.updateTask);
 taskRouter.delete("/task/:id", taskControllers.deleteTask);
 
+// special routes
+taskRouter.get("/task-by-status", taskControllers.getTasksByStatus);
+taskRouter.get("/task-by-create-date", taskControllers.getTasksByCreationDate);
+taskRouter.get("/task-by-deadline-date", taskControllers.getTasksByDeadlineDate);
+taskRouter.get("/task-by-title", taskControllers.getTasksByName);
+
 export default taskRouter;

@@ -1,5 +1,8 @@
 // Controllers for tasks '/' after URL => http://localhost:5000/api/
 
+// cron for job scheduling
+import cron from "node-cron";
+
 // importing model for task
 import Task from "../models/Task.js";
 
@@ -101,3 +104,111 @@ export const deleteTask = async (req, res) => {
     res.status(400).json({ msg: err });
   }
 };
+
+// get tasks by status
+export const getTasksByStatus = async (req, res) => {
+  try {
+    const { status, page = 1, limit = 10 } = req.query;
+    const skip = (page - 1) * limit;
+
+    const tasks = await Task.find({ taskStatus: status })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    res.status(200).json(tasks);
+  } catch (error) {
+    console.error("Error fetching tasks by status:", error);
+    res.status(500).json({ msg: "Internal server error" });
+  }
+};
+
+// get task by date of creation
+export const getTasksByCreationDate = async (req, res) => {
+  try {
+    const { date, page = 1, limit = 10 } = req.query;
+    const skip = (page - 1) * limit;
+
+    const tasks = await Task.find({
+      taskCreatedAt: {
+        $gte: new Date(date), // Assuming searching for tasks created on or after the given date
+      },
+    })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    res.status(200).json(tasks);
+  } catch (error) {
+    console.error("Error fetching tasks by creation date:", error);
+    res.status(500).json({ msg: "Internal server error" });
+  }
+};
+
+// get tasks by date of deadline
+export const getTasksByDeadlineDate = async (req, res) => {
+  try {
+    const { date, page = 1, limit = 10 } = req.query;
+    const skip = (page - 1) * limit;
+
+    const tasks = await Task.find({
+      taskDeadline: {
+        $lte: new Date(date), // Assuming searching for tasks due on or before the given date
+      },
+    })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    res.status(200).json(tasks);
+  } catch (error) {
+    console.error("Error fetching tasks by deadline date:", error);
+    res.status(500).json({ msg: "Internal server error" });
+  }
+};
+
+// get tasks by task title search
+export const getTasksByName = async (req, res) => {
+  try {
+    const { title, page = 1, limit = 10 } = req.query;
+    const skip = (page - 1) * limit;
+
+    const tasks = await Task.find({
+      taskName: { $regex: title, $options: "i" }, // Using case-insensitive regex to search by title
+    })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    res.status(200).json(tasks);
+  } catch (error) {
+    console.error("Error fetching tasks by title:", error);
+    res.status(500).json({ msg: "Internal server error" });
+  }
+};
+
+// Function to update task statuses from "Pending" to "Missed" if the deadline has passed
+const updateMissedTasks = async () => {
+  try {
+    const currentDateTime = new Date();
+    const missedTasks = await Task.updateMany(
+      {
+        taskStatus: "Pending",
+        taskDeadline: { $lt: currentDateTime },
+      },
+      { $set: { taskStatus: "Missed" } }
+    );
+
+    console.log(`${missedTasks.modifiedCount} tasks updated to Missed status.`);
+  } catch (error) {
+    console.error("Error updating task statuses:", error);
+  }
+};
+
+// Schedule the task to run every midnight (00:00 am)
+cron.schedule(
+  "0 0 * * *",
+  () => {
+    updateMissedTasks();
+  },
+  {
+    scheduled: true,
+    timezone: "Asia/Kolkata", // Set the timezone to India (IST)
+  }
+);
