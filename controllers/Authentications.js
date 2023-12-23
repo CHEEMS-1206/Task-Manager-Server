@@ -1,9 +1,10 @@
-import UserDetails from "../models/User.js";
+import User from "../models/EmbedApproach.js";
 import jwt from "jsonwebtoken";
 
 export const register = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { userName, email, password } = req.body;
+    let tasks = [];
 
     // Email Validation
     if (!validateEmail(email)) {
@@ -16,7 +17,7 @@ export const register = async (req, res) => {
         .status(400)
         .json({ message: "Password must be exactly in between 8 to 12 characters." });
     }
-    const user = new UserDetails({ email, password, username });
+    const user = new User({ email, password, userName, tasks });
     await user.save();
     res.status(201).json({ message: "User registered successfully" });
   } catch (error) {
@@ -31,8 +32,8 @@ function validateEmail(email) {
 
 export const login = async (req, res) => {
   try {
-    const { username, password } = req.body;
-    const user = await UserDetails.findOne({ username });
+    const { userName, password } = req.body;
+    const user = await User.findOne({ userName : userName });
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
@@ -40,7 +41,7 @@ export const login = async (req, res) => {
     if (!validPassword) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
-    const token = jwt.sign({ username: username }, "your-secret-key", {
+    const token = jwt.sign({ userName: userName }, "your-secret-key", {
       expiresIn: "1h",
     });
     res.status(200).json({ token });
