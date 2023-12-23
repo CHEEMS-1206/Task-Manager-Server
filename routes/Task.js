@@ -2,17 +2,17 @@ import express from "express";
 import bodyParser from "body-parser";
 
 // import controllers for task
-import * as taskControllers from "../controllers/Task.js";
+import * as taskControllers from "../controllers/EmbedApproach.js";
 
 // define router
 const taskRouter = express.Router();
 
 taskRouter.get("/all-tasks", taskControllers.getAllTasks);
-taskRouter.get("/task/:id", taskControllers.getTask);
+taskRouter.get("/task/:taskId", taskControllers.getTask);
 taskRouter.post("/task", taskControllers.postTask);
-taskRouter.put("/task/:id", taskControllers.updateTask);
-taskRouter.patch("/task/:id", taskControllers.updateTask);
-taskRouter.delete("/task/:id", taskControllers.deleteTask);
+taskRouter.put("/task/:taskId", taskControllers.updateTask);
+taskRouter.patch("/task/:taskId", taskControllers.updateTask);
+taskRouter.delete("/task/:taskId", taskControllers.deleteTask);
 
 // special routes
 taskRouter.get("/task-by-status", taskControllers.getTasksByStatus);
