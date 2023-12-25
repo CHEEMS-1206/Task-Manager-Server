@@ -1,10 +1,19 @@
 import User from "../models/EmbedApproach.js";
 import jwt from "jsonwebtoken";
+import { v4 as uuidv4 } from "uuid";
 
 export const register = async (req, res) => {
   try {
     const { userName, email, password } = req.body;
-    let tasks = [];
+    const defaultTask = {
+      taskName: "Default Task",
+      taskDescription: "This is a default task",
+      taskId: uuidv4(), // Generate a unique taskId for the default task
+      taskCreatedAt: new Date(),
+      taskDeadline: new Date(), // Set a deadline as needed
+      taskStatus: "Pending", // Set a default status
+    };
+    const tasks = [defaultTask]
 
     // Email Validation
     if (!validateEmail(email)) {
