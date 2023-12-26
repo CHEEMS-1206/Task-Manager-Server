@@ -1,5 +1,6 @@
 import cron from "node-cron";
 import User from "../models/EmbedApproach.js";
+import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
 
 // Getting a particular task from the database by the given taskId for a specific user
@@ -7,7 +8,10 @@ export const getTask = async (req, res) => {
   const { taskId } = req.params;
 
   try {
-    const user = await User.findOne({ userName: req.body.userName });
+    const token = req.headers.authorization.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await User.findOne({ userName: decoded.userName });
     if (!user) {
       return res.status(404).json({ msg: "User not found" });
     }
@@ -26,10 +30,14 @@ export const getTask = async (req, res) => {
 
 // Getting list of all tasks in the database with pagination
 export const getAllTasks = async (req, res) => {
-  const { page = 1, limit = 10 } = req.query;
+  const { page = 1, limit = 5 } = req.query;
 
   try {
-    const user = await User.findOne({ userName: req.body.userName });
+    const token = req.headers.authorization.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await User.findOne({ userName: decoded.userName });
+
     if (!user) {
       return res.status(404).json({ msg: "User not found" });
     }
@@ -65,7 +73,10 @@ export const getAllTasks = async (req, res) => {
 // Getting list of all tasks in the database without pagination
 export const getAllTasksForAnalytics = async (req, res) => {
   try {
-    const user = await User.findOne({ userName: req.body.userName });
+    const token = req.headers.authorization.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await User.findOne({ userName: decoded.userName });
     if (!user) {
       return res.status(404).json({ msg: "User not found" });
     }
@@ -85,10 +96,11 @@ export const getAllTasksForAnalytics = async (req, res) => {
 
 // Adding a new task in the database
 export const postTask = async (req, res) => {
-  const { taskName, taskDescription, taskDeadline, userName } = req.body;
+  const { taskName, taskDescription, taskDeadline, token } = req.body;
 
   try {
-    const user = await User.findOne({ userName: userName });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findOne({ userName: decoded.userName });
 
     if (!user) {
       return res.status(404).json({ msg: "User not found" });
@@ -119,7 +131,10 @@ export const updateTask = async (req, res) => {
   const { taskName, taskDescription, taskDeadline, taskStatus } = req.body;
 
   try {
-    const user = await User.findOne({ userName: req.body.userName });
+    const token = req.headers.authorization.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await User.findOne({ userName: decoded.userName });
     if (!user) {
       return res.status(404).json({ msg: "User not found" });
     }
@@ -148,7 +163,10 @@ export const deleteTask = async (req, res) => {
   const { taskId } = req.params;
 
   try {
-    const user = await User.findOne({ userName: req.body.userName });
+    const token = req.headers.authorization.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await User.findOne({ userName: decoded.userName });
     if (!user) {
       return res.status(404).json({ msg: "User not found" });
     }
@@ -174,7 +192,10 @@ export const getTasksByStatus = async (req, res) => {
   const skip = (page - 1) * limit;
 
   try {
-    const user = await User.findOne({ userName: req.body.userName });
+    const token = req.headers.authorization.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await User.findOne({ userName: decoded.userName });
     if (!user) {
       return res.status(404).json({ msg: "User not found" });
     }
@@ -196,7 +217,10 @@ export const getTasksByCreationDate = async (req, res) => {
   const skip = (page - 1) * limit;
 
   try {
-    const user = await User.findOne({ userName: req.body.userName });
+    const token = req.headers.authorization.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await User.findOne({ userName: decoded.userName });
     if (!user) {
       return res.status(404).json({ msg: "User not found" });
     }
@@ -225,7 +249,10 @@ export const getTasksByDeadlineDate = async (req, res) => {
   const skip = (page - 1) * limit;
 
   try {
-    const user = await User.findOne({ userName: req.body.userName });
+    const token = req.headers.authorization.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await User.findOne({ userName: decoded.userName });
     if (!user) {
       return res.status(404).json({ msg: "User not found" });
     }
@@ -252,7 +279,10 @@ export const getTasksByName = async (req, res) => {
   const skip = (page - 1) * limit;
 
   try {
-    const user = await User.findOne({ userName: req.body.userName });
+    const token = req.headers.authorization.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await User.findOne({ userName: decoded.userName });
     if (!user) {
       return res.status(404).json({ msg: "User not found" });
     }
@@ -271,25 +301,20 @@ export const getTasksByName = async (req, res) => {
 };
 
 // Function to update task statuses from "Pending" to "Missed" if the deadline has passed
-const updateMissedTasks = async () => {
+const updateAllPendingTasks = async () => {
   try {
-    const user = await User.findOne({ userName: req.body.userName });
-    if (!user) {
-      return res.status(404).json({ msg: "User not found" });
+    const users = await User.find({});
+
+    for (const user of users) {
+      for (const task of user.tasks) {
+        if (task.taskStatus === "Pending" && task.taskDeadline < new Date()) {
+          task.taskStatus = "Missed";
+        }
+      }
+      await user.save();
     }
-
-    const currentDateTime = new Date();
-    const missedTasks = await Task.updateMany(
-      {
-        taskStatus: "Pending",
-        taskDeadline: { $lt: currentDateTime },
-      },
-      { $set: { taskStatus: "Missed" } }
-    );
-
-    console.log(`${missedTasks.modifiedCount} tasks updated to Missed status.`);
   } catch (error) {
-    console.error("Error updating task statuses:", error);
+    console.error("Error updating pending tasks:", error);
   }
 };
 
@@ -297,7 +322,7 @@ const updateMissedTasks = async () => {
 cron.schedule(
   "0 0 * * *",
   () => {
-    updateMissedTasks();
+    updateAllPendingTasks();
   },
   {
     scheduled: true,
