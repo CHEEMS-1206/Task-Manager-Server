@@ -57,6 +57,7 @@ const userSchema = new mongoose.Schema({
   userName: {
     type: String,
     required: true,
+    unique : true,
     validate: {
       validator: function (v) {
         return /^[a-zA-Z0-9]{5,}$/.test(v);
