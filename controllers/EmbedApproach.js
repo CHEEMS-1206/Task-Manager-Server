@@ -144,6 +144,8 @@ export const updateTask = async (req, res) => {
       return res.status(404).json({ msg: "Task not found" });
     }
 
+    if(taskToUpdate.taskStatus === "Default") return res.status(303).json({msg : "Default Task can't be Updated."});
+
     if (taskName) taskToUpdate.taskName = taskName;
     if (taskDescription) taskToUpdate.taskDescription = taskDescription;
     if (taskDeadline) taskToUpdate.taskDeadline = taskDeadline;
@@ -175,6 +177,9 @@ export const deleteTask = async (req, res) => {
     if (!taskToDelete) {
       return res.status(404).json({ msg: "Task not found" });
     }
+
+    if (taskToDelete.taskStatus === "Default")
+      return res.status(303).json({ msg: "Default Task can't be Deleted." });
 
     user.tasks = user.tasks.filter((item) => item !== taskToDelete);
     await user.save();

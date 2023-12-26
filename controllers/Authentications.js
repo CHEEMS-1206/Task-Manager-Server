@@ -6,12 +6,12 @@ export const register = async (req, res) => {
   try {
     const { userName, email, password } = req.body;
     const defaultTask = {
-      taskName: "Default Task",
-      taskDescription: "This is a default task",
-      taskId: uuidv4(), // Generate a unique taskId for the default task
+      taskName: "DFT",
+      taskDescription: "This is the default task, created just after the user is created. It defines the general Structure of the tasks. You cant delete this task.",
+      taskId: uuidv4(),
       taskCreatedAt: new Date(),
-      taskDeadline: new Date(), // Set a deadline as needed
-      taskStatus: "Pending", // Set a default status
+      taskDeadline: new Date(), 
+      taskStatus: "Default",
     };
     const tasks = [defaultTask]
 
