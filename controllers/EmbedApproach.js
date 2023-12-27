@@ -105,6 +105,10 @@ export const postTask = async (req, res) => {
     if (!user) {
       return res.status(404).json({ msg: "User not found" });
     }
+    const deadline = new Date(taskDeadline);
+    if (deadline < Date.now()) {
+      return res.status(404).json({ msg: "Past dates can't be deadlines." });
+    }
 
     const newTask = {
       taskName: taskName,
@@ -144,7 +148,8 @@ export const updateTask = async (req, res) => {
       return res.status(404).json({ msg: "Task not found" });
     }
 
-    if(taskToUpdate.taskStatus === "Default") return res.status(303).json({msg : "Default Task can't be Updated."});
+    if (taskToUpdate.taskStatus === "Default")
+      return res.status(303).json({ msg: "Default Task can't be Updated." });
 
     if (taskName) taskToUpdate.taskName = taskName;
     if (taskDescription) taskToUpdate.taskDescription = taskDescription;
