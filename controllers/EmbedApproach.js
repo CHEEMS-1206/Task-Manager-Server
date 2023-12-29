@@ -3,6 +3,31 @@ import User from "../models/EmbedApproach.js";
 import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
 
+// Token verification
+export const tokenVerification = async (req, res) => {
+  try {
+    const token = req.headers.authorization.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (decoded) {
+      res.status(200).json("Valid Token");
+      return;
+    }
+  } catch (error) {
+    console.error("Token verification error:", error);
+    if (error instanceof jwt.TokenExpiredError) {
+      res.status(401).json({ msg: "Token expired, please login again." });
+    } else if (
+      error instanceof jwt.JsonWebTokenError ||
+      error instanceof jwt.NotBeforeError
+    ) {
+      res.status(403).json({ msg: "Invalid token." });
+    } else {
+      res.status(500).json({ msg: "Internal server error." });
+    }
+  }
+};
+
 // Getting a particular task from the database by the given taskId for a specific user
 export const getTask = async (req, res) => {
   const { taskId } = req.params;

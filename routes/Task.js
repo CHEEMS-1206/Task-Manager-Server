@@ -7,6 +7,7 @@ import * as taskControllers from "../controllers/EmbedApproach.js";
 // define router
 const taskRouter = express.Router();
 
+taskRouter.get("/verify-token",taskControllers.tokenVerification);
 taskRouter.get("/all-tasks", taskControllers.getAllTasks);
 taskRouter.get("/task/:taskId", taskControllers.getTask);
 taskRouter.post("/task", taskControllers.postTask);
