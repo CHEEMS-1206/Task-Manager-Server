@@ -72,11 +72,11 @@ The project follows a Model, Routes, and Controllers architecture:
 ## Getting Started
 ### Clone the repository:
 
-+ git clone https://github.com/your-username/Task-Manager-Backend.git
++ git clone https://github.com/CHEEMS-1206/task-manager-server.git
   
 ### Install dependencies:
 
-+ cd Task-Manager-Backend
++ cd task-manager-server
 + npm install
   
 ### Set up your environment variables:
@@ -89,7 +89,9 @@ The project follows a Model, Routes, and Controllers architecture:
  
 ### Folder Structure
 
-Task-Manager-Backend/
+task-manager-server/
+
+|-- config/
   
 |-- controllers/
 
@@ -99,11 +101,9 @@ Task-Manager-Backend/
 
 |-- .env
 
-|-- .env.example
-
 |-- .gitignore
 
-|-- app.js
+|-- index.js
 
 |-- package.json
 
