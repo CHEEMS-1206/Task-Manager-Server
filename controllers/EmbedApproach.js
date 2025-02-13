@@ -53,7 +53,7 @@ export const getTask = async (req, res) => {
   }
 };
 
-// Getting list of all tasks in the database with pagination
+// Getting list of all tasks in the database with pagination and sorted by taskstatus and deadline
 export const getAllTasks = async (req, res) => {
   const { page = 1, limit = 5 } = req.query;
 
@@ -67,28 +67,50 @@ export const getAllTasks = async (req, res) => {
       return res.status(404).json({ msg: "User not found" });
     }
 
-    const pageNumber = parseInt(page);
-    const limitNumber = parseInt(limit);
+    const pageNumber = parseInt(page, 10);
+    const limitNumber = parseInt(limit, 10);
 
-    const totalTasks = user.tasks.length;
+    if (user.tasks.length === 0) {
+      return res
+        .status(404)
+        .json({ msg: "Oops! No tasks available for this user." });
+    }
+
+    // Separate the default task at index 0
+    const defaultTask = user.tasks[0];
+    const otherTasks = user.tasks.slice(1);
+
+    // Sorting order for taskStatus
+    const statusOrder = { Completed: 1, Missed: 2, Pending: 3 };
+
+    // Sort tasks based on status first, then deadline, then creation date
+    const sortedTasks = otherTasks.sort((a, b) => {
+      const statusDiff = statusOrder[a.taskStatus] - statusOrder[b.taskStatus];
+      if (statusDiff !== 0) return statusDiff;
+
+      const deadlineDiff = new Date(a.taskDeadline) - new Date(b.taskDeadline);
+      if (deadlineDiff !== 0) return deadlineDiff;
+
+      return new Date(a.taskCreatedAt) - new Date(b.taskCreatedAt);
+    });
+    console.log(user.tasks, otherTasks, sortedTasks);
+
+    // Reinsert the default task at index 0
+    sortedTasks.unshift(defaultTask);
+
+    // Pagination (excluding the default task from page limits)
+    const totalTasks = sortedTasks.length;
     const totalPages = Math.ceil(totalTasks / limitNumber);
-
-    const tasks = user.tasks.slice(
+    const paginatedTasks = sortedTasks.slice(
       (pageNumber - 1) * limitNumber,
       pageNumber * limitNumber
     );
 
-    if (tasks.length > 0) {
-      res.status(200).json({
-        tasks,
-        currentPage: pageNumber,
-        totalPages,
-      });
-    } else {
-      res.status(404).json({
-        msg: "Oops! No tasks available for this user.",
-      });
-    }
+    res.status(200).json({
+      tasks: paginatedTasks,
+      currentPage: pageNumber,
+      totalPages,
+    });
   } catch (error) {
     console.error("Error fetching tasks for user:", error);
     res.status(500).json({ msg: "Internal server error" });
